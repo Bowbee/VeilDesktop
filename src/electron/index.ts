@@ -230,9 +230,8 @@ if (isProd) {
     autoUpdater.checkForUpdates().catch((err) => {
       logger.error(JSON.stringify(err));
     });
-  }, 160000)
+  }, 160000);
 }
-
 
 autoUpdater.logger = logger;
 
