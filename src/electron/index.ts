@@ -222,10 +222,17 @@ app.on("web-contents-created", (e, contents) => {
   });
 });
 
-if (isProd)
+if (isProd) {
   autoUpdater.checkForUpdates().catch((err) => {
     logger.error(JSON.stringify(err));
   });
+  setInterval(() => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      logger.error(JSON.stringify(err));
+    });
+  }, 160000)
+}
+
 
 autoUpdater.logger = logger;
 
