@@ -1,19 +1,18 @@
 {
-  "name": "electron-svelte-typescript",
-  "description": "Template for desktop apps written with Electron, Svelte and Typescript.",
+  "name": "veildesktop",
+  "description": "Desktop application for Veil guild.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fuzzc0re/electron-svelte-typescript.git"
+    "url": "git+https://github.com/bowbee/veildesktop.git"
   },
   "author": {
-    "name": "fuzzc0re",
-    "email": "fuzzc0re@protonmail.com",
-    "url": "https://github.com/fuzzc0re"
+    "name": "Bowbee",
+    "url": "https://github.com/bowbee"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fuzzc0re/electron-svelte-typescript/issues"
+    "url": "https://github.com/bowbee/veildesktop/issues"
   },
   "keywords": [
     "electron",
@@ -27,7 +26,7 @@
     "electron-updater",
     "rollup"
   ],
-  "homepage": "https://github.com/fuzzc0re/electron-svelte-typescript#readme",
+  "homepage": "https://github.com/bowbee/veildesktop#readme",
   "main": "build/index.js",
   "scripts": {
     "prestart": "cross-env NODE_ENV=development node scripts/preBuild.js",
@@ -60,16 +59,21 @@
     "preversion": "npm-run-all -s lint format"
   },
   "dependencies": {
+    "adm-zip": "^0.5.9",
+    "download": "^8.0.0",
     "electron-log": "^4.3.5",
     "electron-store": "^8.0.0",
-    "electron-updater": "^5.2.1"
+    "electron-updater": "^5.2.1",
+    "sudo-prompt": "^9.2.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-typescript": "^8.2.1",
     "@tsconfig/svelte": "^3.0.0",
+    "@types/adm-zip": "^0.5.0",
     "@types/clean-css": "^4.2.4",
+    "@types/download": "^8.0.1",
     "@types/html-minifier": "^4.0.0",
     "@types/node": "^18.7.14",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
@@ -89,6 +93,7 @@
     "prettier": "^2.3.1",
     "prettier-plugin-svelte": "^2.3.1",
     "rollup": "^2.52.2",
+    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-serve": "^1.1.0",
@@ -103,13 +108,19 @@
     "typescript": "^4.3.4"
   },
   "build": {
-    "productName": "Electron Svelte Typescript",
-    "appId": "electron.svelte.typescript",
+    "productName": "Veil App",
+    "appId": "electron.veil.app",
     "copyright": "Copyright © 2021 ${author}",
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true,
+      "guid": "0639cf66-af58-424b-9459-124c8c72f086"
     },
     "mac": {
       "target": [
@@ -137,8 +148,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "fuzzc0re",
-        "repo": "electron-svelte-typescript"
+        "owner": "bowbee",
+        "repo": "veildesktop"
       }
     ]
   }
