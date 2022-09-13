@@ -27,7 +27,7 @@ logger.info(settings.get("check") ? "Settings store works correctly." : "Setting
 let mainWindow: BrowserWindow | null;
 let notification: Notification | null;
 
-async function handleFileOpen() {
+const handleFileOpen = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({});
   if (canceled) {
     return
@@ -35,16 +35,15 @@ async function handleFileOpen() {
     return filePaths[0]
   }
 }
-
-async function handleInstallAddon(args: {name: string, url: string, version: string}) {
-  console.log('installing addon', args);
+const handleInstallAddon = async (args: {name: string, url: string, version: string}) => {
+  // console.log('installing addon', args);
   const dir: string = settings.get('wowDirectory');
   if(!dir){
     await handleSetWoWDirectory();
   }
   const addonFolder = path.join(dir, "_retail_", 'Interface', 'AddOns');
   const veilStagingDir = path.join(dir, "_retail_", 'Interface', 'VeilApp', "Staging");
-  console.log(veilStagingDir);
+  // console.log(veilStagingDir);
   if(!fs.existsSync(veilStagingDir)) {
     fs.mkdirSync(veilStagingDir, {recursive: true});
   };
@@ -67,11 +66,13 @@ async function handleInstallAddon(args: {name: string, url: string, version: str
     };
     const addonFolderPath = path.join(addonFolder, folderName);
     const backupPath = path.join(veilBackup, folderName);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const promise = new Promise((resolve, _reject) => {
       if(fs.existsSync(backupPath)) {
         fs.rmdirSync(backupPath, {recursive: true});
       }
       if(fs.existsSync(addonFolderPath)) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         sudo.exec(`robocopy "${addonFolderPath}" "${backupPath}" /E /MOVE`, options, (_error, stdout, _stderr) => {
             resolve(stdout);
         });
@@ -81,26 +82,13 @@ async function handleInstallAddon(args: {name: string, url: string, version: str
     });
     promises.push(promise);
     return;
-    // const addonFolderPath = path.join(addonFolder, folderName);
-    if(fs.existsSync(addonFolderPath)) {
-      
-      if(!fs.existsSync(backupPath)) {
-        fs.mkdirSync(backupPath, {recursive: true});
-      }
-      const backupFiles = fs.readdirSync(addonFolderPath);
-      backupFiles.forEach(file => {
-        fs.copyFileSync(path.join(addonFolderPath, file), path.join(backupPath, file));
-      });
-    }
-    // move folders from staging to addonPath
-    fs.renameSync(path.join(veilStagingDir, folderName), path.join(addonFolder, folderName));
   });
   await Promise.all(promises);
   // copy staging to addon folder
   files.forEach(folderName => {
     const addonFolderPath = path.join(addonFolder, folderName);
     if(fs.existsSync(addonFolderPath)) {
-      console.log("DIDNT BACK UP??");
+      // console.log("DIDNT BACK UP??");
       throw new Error("Didnt back up Addon. Something went wrong.");
     } else {
       fs.renameSync(path.join(veilStagingDir, folderName), path.join(addonFolder, folderName));
@@ -108,17 +96,17 @@ async function handleInstallAddon(args: {name: string, url: string, version: str
   });
   // delete staging folder
   fs.rmSync(veilStagingDir, {recursive: true});
-  let installed: any = settings.get('installedAddons');
+  let installed: {[name: string]: string} = settings.get('installedAddons');
   if(!installed) {
     installed = {};
   }
   installed[args.name] = args.version;
   settings.set('installedAddons', installed);
-  console.log(installed);
+  // console.log(installed);
   return installed;
 };
 
-async function handleSetWoWDirectory(): Promise<string> {
+const handleSetWoWDirectory = async (): Promise<string> => {
   const doesExist = fs.existsSync('C:\\Program Files (x86)\\World of Warcraft');
   if(doesExist) {
     const wowPath = 'C:\\Program Files (x86)\\World of Warcraft';
@@ -183,9 +171,10 @@ app.on("ready", () => {
     return dir;
   });
   ipcMain.handle('wow:setDirectory', handleSetWoWDirectory);
-  ipcMain.handle('addon:install', (_event, args) => {return handleInstallAddon(args)});
+  ipcMain.handle('addon:install', (_event, args: {name: string, url: string, version: string}) => {return handleInstallAddon(args)});
   ipcMain.handle('addon:installed', () => {
-    return settings.get('installedAddons');
+    const installed: {[name: string]: string} = settings.get('installedAddons');
+    return installed || {};
   })
   createWindow();
 });
@@ -240,7 +229,7 @@ autoUpdater.logger = logger;
 
 autoUpdater.on("update-available", () => {
   notification = new Notification({
-    title: "Electron-Svelte-Typescript",
+    title: "Veil App",
     body: "Updates are available. Click to download.",
     silent: true,
     // icon: nativeImage.createFromPath(join(__dirname, "..", "assets", "icon.png"),
@@ -255,7 +244,7 @@ autoUpdater.on("update-available", () => {
 
 autoUpdater.on("update-not-available", () => {
   notification = new Notification({
-    title: "Electron-Svelte-Typescript",
+    title: "Veil App",
     body: "Your software is up to date.",
     silent: true,
     // icon: nativeImage.createFromPath(join(__dirname, "..", "assets", "icon.png"),
@@ -265,7 +254,7 @@ autoUpdater.on("update-not-available", () => {
 
 autoUpdater.on("update-downloaded", () => {
   notification = new Notification({
-    title: "Electron-Svelte-Typescript",
+    title: "Veil App",
     body: "The updates are ready. Click to quit and install.",
     silent: true,
     // icon: nativeImage.createFromPath(join(__dirname, "..", "assets", "icon.png"),
@@ -278,7 +267,7 @@ autoUpdater.on("update-downloaded", () => {
 
 autoUpdater.on("error", (err) => {
   notification = new Notification({
-    title: "Electron-Svelte-Typescript",
+    title: "Veil App",
     body: JSON.stringify(err),
     // icon: nativeImage.createFromPath(join(__dirname, "..", "assets", "icon.png"),
   });
