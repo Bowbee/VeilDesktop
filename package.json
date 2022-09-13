@@ -1,7 +1,7 @@
 {
   "name": "veildesktop",
   "description": "Desktop application for Veil guild.",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bowbee/veildesktop.git"
