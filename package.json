@@ -121,7 +121,7 @@
     },
     "nsis": {
       "oneClick": true,
-      "perMachine": true,
+      "perMachine": false,
       "guid": "0639cf66-af58-424b-9459-124c8c72f086"
     },
     "mac": {
