@@ -6,11 +6,11 @@ import {
   Notification,
   // nativeImage
 } from "electron";
-import fs from 'fs';
+import fs from "fs";
 import path, { join } from "path";
 import { parse } from "url";
 import { autoUpdater } from "electron-updater";
-import download from 'download';
+import download from "download";
 import AdmZip from "adm-zip";
 import sudo from "sudo-prompt";
 
@@ -30,51 +30,51 @@ let notification: Notification | null;
 const handleFileOpen = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({});
   if (canceled) {
-    return
+    return;
   } else {
-    return filePaths[0]
+    return filePaths[0];
   }
-}
-const handleInstallAddon = async (args: {name: string, url: string, version: string}) => {
+};
+const handleInstallAddon = async (args: { name: string; url: string; version: string }) => {
   // console.log('installing addon', args);
-  const dir: string = settings.get('wowDirectory');
-  if(!dir){
+  const dir: string = settings.get("wowDirectory");
+  if (!dir) {
     await handleSetWoWDirectory();
   }
-  const addonFolder = path.join(dir, "_retail_", 'Interface', 'AddOns');
-  const veilStagingDir = path.join(dir, "_retail_", 'Interface', 'VeilApp', "Staging");
+  const addonFolder = path.join(dir, "_retail_", "Interface", "AddOns");
+  const veilStagingDir = path.join(dir, "_retail_", "Interface", "VeilApp", "Staging");
   // console.log(veilStagingDir);
-  if(!fs.existsSync(veilStagingDir)) {
-    fs.mkdirSync(veilStagingDir, {recursive: true});
-  };
-  const veilBackup = path.join(dir, "_retail_", 'Interface', 'VeilApp', "Backup");
-  if(!fs.existsSync(veilBackup)) {
-    fs.mkdirSync(veilBackup, {recursive: true});
+  if (!fs.existsSync(veilStagingDir)) {
+    fs.mkdirSync(veilStagingDir, { recursive: true });
+  }
+  const veilBackup = path.join(dir, "_retail_", "Interface", "VeilApp", "Backup");
+  if (!fs.existsSync(veilBackup)) {
+    fs.mkdirSync(veilBackup, { recursive: true });
   }
   // download file from url
-  await download(args.url, veilStagingDir, {filename: `${args.name}.zip`});
+  await download(args.url, veilStagingDir, { filename: `${args.name}.zip` });
   const zip = new AdmZip(path.join(veilStagingDir, `${args.name}.zip`));
   zip.extractAllTo(veilStagingDir, true);
   fs.unlinkSync(path.join(veilStagingDir, `${args.name}.zip`));
   // get all files in folder
   const files = fs.readdirSync(veilStagingDir);
   const promises: Promise<any>[] = [];
-  files.forEach(folderName => {
+  files.forEach((folderName) => {
     const options = {
-      name: 'Electron',
-      icns: '/Applications/Electron.app/Contents/Resources/Electron.icns', // (optional)
+      name: "Electron",
+      icns: "/Applications/Electron.app/Contents/Resources/Electron.icns", // (optional)
     };
     const addonFolderPath = path.join(addonFolder, folderName);
     const backupPath = path.join(veilBackup, folderName);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const promise = new Promise((resolve, _reject) => {
-      if(fs.existsSync(backupPath)) {
-        fs.rmdirSync(backupPath, {recursive: true});
+      if (fs.existsSync(backupPath)) {
+        fs.rmdirSync(backupPath, { recursive: true });
       }
-      if(fs.existsSync(addonFolderPath)) {
+      if (fs.existsSync(addonFolderPath)) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         sudo.exec(`robocopy "${addonFolderPath}" "${backupPath}" /E /MOVE`, options, (_error, stdout, _stderr) => {
-            resolve(stdout);
+          resolve(stdout);
         });
       } else {
         resolve(true);
@@ -85,9 +85,9 @@ const handleInstallAddon = async (args: {name: string, url: string, version: str
   });
   await Promise.all(promises);
   // copy staging to addon folder
-  files.forEach(folderName => {
+  files.forEach((folderName) => {
     const addonFolderPath = path.join(addonFolder, folderName);
-    if(fs.existsSync(addonFolderPath)) {
+    if (fs.existsSync(addonFolderPath)) {
       // console.log("DIDNT BACK UP??");
       throw new Error("Didnt back up Addon. Something went wrong.");
     } else {
@@ -95,40 +95,40 @@ const handleInstallAddon = async (args: {name: string, url: string, version: str
     }
   });
   // delete staging folder
-  fs.rmSync(veilStagingDir, {recursive: true});
-  let installed: {[name: string]: string} = settings.get('installedAddons');
-  if(!installed) {
+  fs.rmSync(veilStagingDir, { recursive: true });
+  let installed: { [name: string]: string } = settings.get("installedAddons");
+  if (!installed) {
     installed = {};
   }
   installed[args.name] = args.version;
-  settings.set('installedAddons', installed);
+  settings.set("installedAddons", installed);
   // console.log(installed);
   return installed;
 };
 
 const handleSetWoWDirectory = async (): Promise<string> => {
-  const doesExist = fs.existsSync('C:\\Program Files (x86)\\World of Warcraft');
-  if(doesExist) {
-    const wowPath = 'C:\\Program Files (x86)\\World of Warcraft';
+  const doesExist = fs.existsSync("C:\\Program Files (x86)\\World of Warcraft");
+  if (doesExist) {
+    const wowPath = "C:\\Program Files (x86)\\World of Warcraft";
     const files = fs.readdirSync(wowPath);
-    if(files.includes('Data') && files.includes('_retail_')) {
-      settings.set('wowDirectory', wowPath);
+    if (files.includes("Data") && files.includes("_retail_")) {
+      settings.set("wowDirectory", wowPath);
       return wowPath;
     }
   }
-  const { canceled, filePaths } = await dialog.showOpenDialog({properties: ['openDirectory']});
+  const { canceled, filePaths } = await dialog.showOpenDialog({ properties: ["openDirectory"] });
   if (canceled) {
-    return '';
+    return "";
   } else {
     const files = fs.readdirSync(filePaths[0]);
-    if(files.includes('Data') && files.includes('_retail_')) {
-      settings.set('wowDirectory', filePaths[0]);
-      return filePaths[0]
+    if (files.includes("Data") && files.includes("_retail_")) {
+      settings.set("wowDirectory", filePaths[0]);
+      return filePaths[0];
     } else {
       return handleSetWoWDirectory();
     }
   }
-}
+};
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -162,20 +162,22 @@ const createWindow = () => {
 };
 
 app.on("ready", () => {
-  ipcMain.handle('dialog:openFile', handleFileOpen);
-  ipcMain.handle('wow:directory', () => {
-    const dir = settings.get('wowDirectory');
-    if(dir === "" || dir === undefined) {
+  ipcMain.handle("dialog:openFile", handleFileOpen);
+  ipcMain.handle("wow:directory", () => {
+    const dir = settings.get("wowDirectory");
+    if (dir === "" || dir === undefined) {
       return handleSetWoWDirectory();
     }
     return dir;
   });
-  ipcMain.handle('wow:setDirectory', handleSetWoWDirectory);
-  ipcMain.handle('addon:install', (_event, args: {name: string, url: string, version: string}) => {return handleInstallAddon(args)});
-  ipcMain.handle('addon:installed', () => {
-    const installed: {[name: string]: string} = settings.get('installedAddons');
+  ipcMain.handle("wow:setDirectory", handleSetWoWDirectory);
+  ipcMain.handle("addon:install", (_event, args: { name: string; url: string; version: string }) => {
+    return handleInstallAddon(args);
+  });
+  ipcMain.handle("addon:installed", () => {
+    const installed: { [name: string]: string } = settings.get("installedAddons");
     return installed || {};
-  })
+  });
   createWindow();
 });
 
