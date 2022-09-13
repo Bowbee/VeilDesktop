@@ -84,13 +84,20 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import Component from "./Component.svelte";
+  import Addon from "./Addon.svelte";
+  import Pack from "./Pack.svelte";
   const api = (window as any).electronAPI;
   let wowDirectory: string;
-  let addons: { [key: string]: { name: string; url: string; installedVersion: string } } = {
-    ElvUI: { name: "ElvUI", url: "https://api.github.com/repos/Bowbee/ElvUI/releases", installedVersion: "" },
+  let addons: { [key: string]: { displayName: string; url: string; installedVersion: string } } = {
+    ElvUI: { displayName: "ElvUI", url: "https://api.github.com/repos/Bowbee/ElvUI/releases", installedVersion: "" },
   };
-  let packs: { [key: string]: any } = {};
+  let packs: { [key: string]: { displayName: string; url: string; installedVersion: string } } = {
+    Icons: {
+      displayName: "HD Icons - 767 MB",
+      url: "https://api.github.com/repos/AcidWeb/Clean-Icons-Mechagnome-Edition/releases",
+      installedVersion: "",
+    },
+  };
 
   const handleDirClick = async () => {
     console.log("clicked");
@@ -111,6 +118,16 @@
         }
       });
       addons = addons;
+    }
+    const installedPacks = await api.getInstalledPacks();
+    console.log(installedPacks);
+    if (installedPacks) {
+      Object.keys(installedPacks).forEach((pack) => {
+        if(packs[pack]) {
+          packs[pack].installedVersion = installedPacks[pack];
+        }
+      });
+      packs = packs;
     }
   });
 </script>
@@ -138,14 +155,14 @@
     <div class="container">
       <p class="title">ADDONS</p>
       {#each Object.keys(addons) as addon}
-        <Component args="{addons[addon]}" />
+        <Addon args="{{...addons[addon], key: addon}}" />
       {/each}
     </div>
     <div class="container">
       <p class="title">RESOURCE PACKS</p>
       {#if Object.keys(packs).length > 0}
         {#each Object.keys(packs) as pack}
-          <Component args="{packs[pack]}" />
+          <Pack args="{{...packs[pack], key: pack}}" />
         {/each}
       {:else}
         <p id="nopack" style="color: gray">None yet...</p>

@@ -52,7 +52,7 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  export let args: { name: string; url: string; installedVersion: string };
+  export let args: { key: string, displayName: string; url: string; installedVersion: string };
   let data = {
     latestVersion: "",
     downloadUrl: "",
@@ -67,39 +67,37 @@
     data.latestVersion = latest.tag_name;
     data.downloadUrl = latest.assets[0].browser_download_url;
     console.log(data);
+    console.log('Installed:', args);
     if (args.installedVersion === "") {
       console.log("not installed.");
     } else if (data.latestVersion === args.installedVersion) {
       console.log("up to date");
     } else {
       console.log("update available");
-      installAddon();
+      installPack();
     }
   };
-  const installAddon = async () => {
-    console.log("installing addon");
+  const installPack = async () => {
+    console.log("installing pack");
     const api = (window as any).electronAPI;
     installing = true;
-    const installedItems = await api.installAddon({
-      name: args.name,
+    const installedItems = await api.installPack({
+      name: args.key,
       url: data.downloadUrl,
       version: data.latestVersion,
     });
     console.log(installedItems);
+    args.installedVersion = Object.values(installedItems)[0] as string;
     installing = false;
   };
   onMount(async () => {
     await githubData();
-    setInterval(async () => {
-      await githubData();
-      console.log("Refreshing");
-    }, 120000);
   });
 </script>
 
 <div class="addonBox">
   <div class="subBox">
-    <span class="addonName">{args.name}</span>
+    <span class="addonName">{args.displayName}</span>
     {#if !installing}
       <span class="version">{args.installedVersion}</span>
     {/if}
@@ -115,7 +113,7 @@
           alt=""
           src="../stuff/dl.svg"
           on:click="{() => {
-            installAddon();
+            installPack();
           }}"
         />
       {/if}
@@ -128,7 +126,7 @@
           alt=""
           src="../stuff/dl.svg"
           on:click="{() => {
-            installAddon();
+            installPack();
           }}"
         />
       {/if}
